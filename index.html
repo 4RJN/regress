@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>PuTTY Export Generator</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    label, input, select, textarea, button { display: block; margin: 1rem 0; width: 100%; max-width: 500px; }
+    .group-list { margin: 1rem 0; }
+    .group-list label { display: inline-block; margin-right: 1rem; }
+    .output { white-space: pre-wrap; background: #f3f3f3; padding: 1rem; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>PuTTY Session Export Generator</h1>
+
+  <form id="configForm">
+    <label>USERNAME <input type="text" name="USERNAME" required></label>
+    <label>JAVAUSER <input type="text" name="JAVAUSER" required></label>
+    <label>PubFileDir <input type="text" name="PubFileDir" required></label>
+    <label>LogFileDir <input type="text" name="LogFileDir" required></label>
+
+    <h3>Wähle Gruppen:</h3>
+    <div class="group-list" id="groupList"></div>
+
+    <button type="submit">Export erstellen</button>
+  </form>
+
+  <h3>Exportierte Registry:</h3>
+  <div class="output" id="output"></div>
+
+  <script>
+    const groupNames = [
+      "Discover", "EFRE", "EPF", "eProcurement", "eRechnung", "Formularserver",
+      "Gewan", "Limesurvey", "Medienupload", "MessageProxy", "Oscillator",
+      "Sprungserver", "Vorhabensmgmt", "VUdat"
+    ];
+
+    const groupListContainer = document.getElementById("groupList");
+    groupNames.forEach(group => {
+      const label = document.createElement("label");
+      label.innerHTML = `<input type="checkbox" name="groups" value="${group}"> ${group}`;
+      groupListContainer.appendChild(label);
+    });
+
+    document.getElementById('configForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const formData = new FormData(form);
+      const variables = {
+        USERNAME: formData.get('USERNAME'),
+        JAVAUSER: formData.get('JAVAUSER'),
+        PubFileDir: formData.get('PubFileDir'),
+        LogFileDir: formData.get('LogFileDir')
+      };
+
+      const selectedGroups = groupNames.filter(name => form.querySelector(`input[value="${name}"]`).checked);
+      const output = document.getElementById('output');
+      output.textContent = '';
+
+      const fetchGroupFiles = async (group) => {
+        const groupPath = `${group}/`;
+        try {
+          const response = await fetch(groupPath);
+          const text = await response.text();
+          const fileMatches = text.match(/href="(.*?\.reg)"/g);
+          const filePaths = fileMatches ? fileMatches.map(match => match.replace(/href=|"/g, '')).filter(p => p.endsWith('.reg')) : [];
+
+          const fileContents = await Promise.all(filePaths.map(async file => {
+            const content = await fetch(groupPath + file).then(r => r.text());
+            return content
+              .replace(/USERNAME/g, variables.USERNAME)
+              .replace(/JAVAUSER/g, variables.JAVAUSER)
+              .replace(/PubFileDir/g, variables.PubFileDir)
+              .replace(/LogFileDir/g, variables.LogFileDir)
+              .replace(/\[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions\]\n?/g, '').trim();
+          }));
+
+          return fileContents;
+        } catch (err) {
+          console.error(`Fehler beim Laden der Gruppe ${group}:`, err);
+          return [];
+        }
+      };
+
+      const allSnippets = (await Promise.all(selectedGroups.map(fetchGroupFiles))).flat();
+      const finalContent = 'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions]\n\n' + allSnippets.join('\n\n');
+
+      output.textContent = finalContent;
+
+      const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-16' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'putty-export.reg';
+      a.click();
+    });
+  </script>
+</body>
+</html>
