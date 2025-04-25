@@ -115,8 +115,8 @@
   <form id="configForm">
     <label>USERNAME <input type="text" name="USERNAME" required></label>
     <label>JAVAUSER <input type="text" name="JAVAUSER" required></label>
-    <label>PubFileDir <input type="text" name="PubFileDir" required></label>
-    <label>LogFileDir <input type="text" name="LogFileDir" required></label>
+    <label>PubFileDir <input type="text" name="PubFileDir"></label>
+    <label>LogFileDir <input type="text" name="LogFileDir"></label>
 
     <h3>Wähle Gruppen:</h3>
     <div class="group-list" id="groupList"></div>
@@ -146,12 +146,15 @@
 
     const form = e.target;
     const formData = new FormData(form);
+    const formatPath = (path) => path?.replace(/\\/g, '\\\\');
+
     const variables = {
       USERNAME: formData.get('USERNAME'),
       JAVAUSER: formData.get('JAVAUSER'),
-      PubFileDir: formData.get('PubFileDir'),
-      LogFileDir: formData.get('LogFileDir')
+      PubFileDir: formatPath(formData.get('PubFileDir') || ''),
+      LogFileDir: formatPath(formData.get('LogFileDir') || '')
     };
+
 
     const selectedGroups = groupNames.filter(name => form.querySelector(`input[value="${name}"]`).checked);
     const output = document.getElementById('output');
