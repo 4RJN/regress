@@ -106,6 +106,12 @@
     font-family: Consolas, monospace;
     color: #374151;
   }
+
+  label input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: scale(1.2);
+  }
+
 </style>
 
 </head>
@@ -121,7 +127,12 @@
     <h3>Wähle Gruppen:</h3>
     <div class="group-list" id="groupList"></div>
 
-    <button type="submit">Export erstellen</button>
+    <label style="margin-top: 1.5rem;">
+    <input type="checkbox" id="backupConfirm">
+      Ich habe ein Backup meiner Daten gemacht.
+    </label>
+
+    <button type="submit" id="submitBtn" disabled>Export erstellen</button>
   </form>
 
   <h3>Exportierte Registry:</h3>
@@ -157,6 +168,10 @@
 
 
     const selectedGroups = groupNames.filter(name => form.querySelector(`input[value="${name}"]`).checked);
+    if (selectedGroups.length === 0) {
+      alert("Bitte wähle mindestens eine Gruppe aus.");
+      return;
+    }
     const output = document.getElementById('output');
     output.textContent = '';
 
@@ -193,6 +208,14 @@
     a.download = 'putty-export.reg';
     a.click();
   });
+
+    const backupCheckbox = document.getElementById("backupConfirm");
+    const submitBtn = document.getElementById("submitBtn");
+    
+    backupCheckbox.addEventListener("change", () => {
+      submitBtn.disabled = !backupCheckbox.checked;
+    });
+
 </script>
 
 </body>
