@@ -4,12 +4,110 @@
   <meta charset="UTF-8">
   <title>PuTTY Export Generator</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    label, input, select, textarea, button { display: block; margin: 1rem 0; width: 100%; max-width: 500px; }
-    .group-list { margin: 1rem 0; }
-    .group-list label { display: inline-block; margin-right: 1rem; }
-    .output { white-space: pre-wrap; background: #f3f3f3; padding: 1rem; border-radius: 5px; }
-  </style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9fafb;
+    color: #111827;
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+  }
+
+  h1, h3 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+  }
+
+  form {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    color: #374151;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #f3f4f6;
+    transition: border 0.2s ease-in-out;
+  }
+
+  input[type="text"]:focus {
+    border-color: #3b82f6;
+    outline: none;
+    background-color: #fff;
+  }
+
+  .group-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .group-list label {
+    display: flex;
+    align-items: center;
+    background: #f3f4f6;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .group-list input[type="checkbox"] {
+    margin-right: 0.5rem;
+  }
+
+  .group-list label:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  button[type="submit"] {
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  button[type="submit"]:hover {
+    background-color: #2563eb;
+  }
+
+  .output {
+    white-space: pre-wrap;
+    background: #f3f4f6;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-family: Consolas, monospace;
+    color: #374151;
+  }
+</style>
+
 </head>
 <body>
   <h1>PuTTY Session Export Generator</h1>
