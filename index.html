@@ -30,76 +30,69 @@
   <div class="output" id="output"></div>
 
   <script>
-    const groupNames = [
-      "Discover", "EFRE", "EPF", "eProcurement", "eRechnung", "Formularserver",
-      "Gewan", "Limesurvey", "Medienupload", "MessageProxy", "Oscillator",
-      "Sprungserver", "Vorhabensmgmt", "VUdat"
-    ];
+  const groupNames = [
+    "Discover", "EFRE", "EPF", "eProcurement", "eRechnung", "Formularserver",
+    "Gewan", "Limesurvey", "Medienupload", "MessageProxy", "Oscillator",
+    "Sprungserver", "Vorhabensmgmt", "VUdat"
+  ];
 
-    const groupListContainer = document.getElementById("groupList");
-    groupNames.forEach(group => {
-      const label = document.createElement("label");
-      label.innerHTML = `<input type="checkbox" name="groups" value="${group}"> ${group}`;
-      groupListContainer.appendChild(label);
-    });
+  const groupListContainer = document.getElementById("groupList");
+  groupNames.forEach(group => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" name="groups" value="${group}"> ${group}`;
+    groupListContainer.appendChild(label);
+  });
 
-    document.getElementById('configForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+  document.getElementById('configForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-      const form = e.target;
-      const formData = new FormData(form);
-      const variables = {
-        USERNAME: formData.get('USERNAME'),
-        JAVAUSER: formData.get('JAVAUSER'),
-        PubFileDir: formData.get('PubFileDir'),
-        LogFileDir: formData.get('LogFileDir')
-      };
+    const form = e.target;
+    const formData = new FormData(form);
+    const variables = {
+      USERNAME: formData.get('USERNAME'),
+      JAVAUSER: formData.get('JAVAUSER'),
+      PubFileDir: formData.get('PubFileDir'),
+      LogFileDir: formData.get('LogFileDir')
+    };
 
-      const selectedGroups = groupNames.filter(name => form.querySelector(`input[value="${name}"]`).checked);
-      const output = document.getElementById('output');
-      output.textContent = '';
+    const selectedGroups = groupNames.filter(name => form.querySelector(`input[value="${name}"]`).checked);
+    const output = document.getElementById('output');
+    output.textContent = '';
 
-      const fetchGroupFiles = async (group) => {
-        const fileUrl = `https://raw.githubusercontent.com/4RJN/regress/main/${group}/config.reg`;
-        try {
-          const response = await fetch(fileUrl);
-          if (!response.ok) {
-            throw new Error(`Fehler beim Laden der Datei: ${fileUrl}`);
-          }
-          const content = await response.text();
-          return content
-            .replace(/USERNAME/g, variables.USERNAME)
-            .replace(/JAVAUSER/g, variables.JAVAUSER)
-            .replace(/PubFileDir/g, variables.PubFileDir)
-            .replace(/LogFileDir/g, variables.LogFileDir)
-            .replace(/\[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions\]\n?/g, '')
-            .trim();
-        } catch (err) {
-          console.error(`Fehler beim Laden der Gruppe ${group}:`, err);
-          return '';
+    const fetchGroupFiles = async (group) => {
+      const fileUrl = `https://raw.githubusercontent.com/4RJN/regress/main/${group}/config.reg`;
+      try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error(`Fehler beim Laden der Datei: ${fileUrl}`);
         }
-      };
+        const content = await response.text();
+        return content
+          .replace(/USERNAME/g, variables.USERNAME)
+          .replace(/JAVAUSER/g, variables.JAVAUSER)
+          .replace(/PubFileDir/g, variables.PubFileDir)
+          .replace(/LogFileDir/g, variables.LogFileDir)
+          .replace(/\[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions\]\n?/g, '')
+          .trim();
+      } catch (err) {
+        console.error(`Fehler beim Laden der Gruppe ${group}:`, err);
+        return '';
+      }
+    };
 
+    const allSnippets = (await Promise.all(selectedGroups.map(fetchGroupFiles))).filter(Boolean);
+    const finalContent = 'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions]\n\n' + allSnippets.join('\n\n');
 
-          return fileContents;
-        } catch (err) {
-          console.error(`Fehler beim Laden der Gruppe ${group}:`, err);
-          return [];
-        }
-      };
+    output.textContent = finalContent;
 
-      const allSnippets = (await Promise.all(selectedGroups.map(fetchGroupFiles))).flat();
-      const finalContent = 'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions]\n\n' + allSnippets.join('\n\n');
+    const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-16' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'putty-export.reg';
+    a.click();
+  });
+</script>
 
-      output.textContent = finalContent;
-
-      const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-16' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'putty-export.reg';
-      a.click();
-    });
-  </script>
 </body>
 </html>
