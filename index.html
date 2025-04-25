@@ -112,6 +112,12 @@
     transform: scale(1.2);
   }
 
+  button[disabled] {
+    background-color: #9ca3af; /* schönes graues Aussehen */
+    cursor: not-allowed;
+  }
+
+
 </style>
 
 </head>
@@ -127,12 +133,21 @@
     <h3>Wähle Gruppen:</h3>
     <div class="group-list" id="groupList"></div>
 
-    <label style="margin-top: 1.5rem;">
-    <input type="checkbox" id="backupConfirm">
-      Ich habe ein Backup meiner Daten gemacht.
-    </label>
 
-    <button type="submit" id="submitBtn" disabled>Export erstellen</button>
+    <!-- Backup-Checkbox -->
+<label style="margin-top: 1.5rem;">
+  <input type="checkbox" id="backupConfirm">
+  Ich habe ein Backup meiner Daten gemacht.
+</label>
+
+<!-- Export-Button (jetzt disabled am Anfang) -->
+<button type="submit" id="submitBtn" disabled>Export erstellen</button>
+
+<!-- Hinweis, wenn noch kein Backup bestätigt -->
+<div id="backupWarning" style="margin-top: 0.5rem; color: #dc2626; font-weight: 500;">
+  Bitte bestätige, dass du ein Backup gemacht hast.
+</div>
+
   </form>
 
   <h3>Exportierte Registry:</h3>
@@ -144,6 +159,16 @@
     "Gewan", "Limesurvey", "Medienupload", "MessageProxy", "Oscillator",
     "Sprungserver", "Vorhabensmgmt", "VUdat"
   ];
+
+  const backupCheckbox = document.getElementById("backupConfirm");
+  const submitBtn = document.getElementById("submitBtn");
+  const backupWarning = document.getElementById("backupWarning");
+  
+  backupCheckbox.addEventListener("change", () => {
+    submitBtn.disabled = !backupCheckbox.checked;
+    backupWarning.style.display = backupCheckbox.checked ? "none" : "block";
+  });
+
 
   const groupListContainer = document.getElementById("groupList");
   groupNames.forEach(group => {
