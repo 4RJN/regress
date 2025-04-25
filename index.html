@@ -60,22 +60,26 @@
       output.textContent = '';
 
       const fetchGroupFiles = async (group) => {
-        const groupPath = `${group}/`;
+        const fileUrl = `https://raw.githubusercontent.com/4RJN/regress/main/${group}/config.reg`;
         try {
-          const response = await fetch(groupPath);
-          const text = await response.text();
-          const fileMatches = text.match(/href="(.*?\.reg)"/g);
-          const filePaths = fileMatches ? fileMatches.map(match => match.replace(/href=|"/g, '')).filter(p => p.endsWith('.reg')) : [];
+          const response = await fetch(fileUrl);
+          if (!response.ok) {
+            throw new Error(`Fehler beim Laden der Datei: ${fileUrl}`);
+          }
+          const content = await response.text();
+          return content
+            .replace(/USERNAME/g, variables.USERNAME)
+            .replace(/JAVAUSER/g, variables.JAVAUSER)
+            .replace(/PubFileDir/g, variables.PubFileDir)
+            .replace(/LogFileDir/g, variables.LogFileDir)
+            .replace(/\[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions\]\n?/g, '')
+            .trim();
+        } catch (err) {
+          console.error(`Fehler beim Laden der Gruppe ${group}:`, err);
+          return '';
+        }
+      };
 
-          const fileContents = await Promise.all(filePaths.map(async file => {
-            const content = await fetch(groupPath + file).then(r => r.text());
-            return content
-              .replace(/USERNAME/g, variables.USERNAME)
-              .replace(/JAVAUSER/g, variables.JAVAUSER)
-              .replace(/PubFileDir/g, variables.PubFileDir)
-              .replace(/LogFileDir/g, variables.LogFileDir)
-              .replace(/\[HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions\]\n?/g, '').trim();
-          }));
 
           return fileContents;
         } catch (err) {
